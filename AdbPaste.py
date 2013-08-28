@@ -1,8 +1,5 @@
 #!/usr/bin/python
-
-
 import sys,os
-
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
 
@@ -64,21 +61,20 @@ class AdbPaste:
 		"+":81,
 		"(":162,
 		")":163,
-		#// note how there's not ":" and others... sigh. can't standardize one solution for it all
+		#// note how there's no colon or single/double quotes and others... sigh. can't standardize one solution for it all
 	}
 
 	#// charaters that must be sent as keyevent because as string sh will complain.
 	#// there is nothing i can do when calling it on windows because adb will just
 	#// pass it forward to sh and things break.
-	trouble = [' '] # i think space is only needed in adb.exe->sh... when running directly in unix it may not be needed
-	inconvenience = [';', ')' ,'(', '"', '\'', '\\', '&' ]
+	trouble = [' ', '\n', '	'] # i think space is only needed in adb.exe->sh... when running directly in unix it may not be needed
+	inconvenience = [';', ')' ,'(', "'", '\\', '&', '#']
 
 	def __init__(self, input_string=""):
 		self.addString( input_string )
 	
 	def addString(self, input_string):
 		self.string_data = input_string
-
 
 	def getKeys(self, fast=False):
 		"thanks to some keys not being available, e.g. colon, we return an array of keycodes (int) or strings."
@@ -99,8 +95,11 @@ class AdbPaste:
 			else:
 				#// if the last element is a safe string, continue to add to it
 				# before anything, escape if needed
-				if c in self.inconvenience:
+				if c == '"': # added this to CMD.exe issues, TODO: test on other platforms
+					c = '\\\\\\"' # this will become \\\" to CMD when passing to adb.exe, which will become \" to sh, and finally " to the device
+				elif c in self.inconvenience:
 					c = '\\' + c
+
 				if len(r) > 0 and isinstance(r[-1], str):
 					r[-1] += c
 				else:
@@ -118,24 +117,38 @@ class AdbPaste:
 		if( isinstance(key, int) ):
 			os.system('adb shell input keyevent %d'%key)
 		else:
-			if( key == '"' ):
-				raise Exception(NotImplemented)
 			os.system('adb shell input text "' + key + '"')
 
 	def translate( self, char ):
 		return self.key_dict[char] #// will fail on unkown values, so we can add them :)
 
-
-
-
-
 if __name__=="__main__":
 	arg = sys.argv[1:]
+	#// --fast: must be 1st arg, i'm lazy. Will bypass the workaround of breaking longer strings
+	#//         will mess up input in the browser or other input boxes that does network searchs
+	#//         while you are typing. For sure!
 	if arg[0] == "--fast":
 		fast = True
 		arg = arg[1:]
 	else:
 		fast = False
-	paste = AdbPaste( " ".join(arg) )
+	
+	#// --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
+	if arg[0] == "--notab":
+		notab = True
+		arg = arg[1:]
+	else:
+		notab = False
+
+	#// -- file: read the contents from a file, and not from stdin
+	if arg[0] == "--file" and isinstance(arg[1], str):
+		with open(arg[1], 'r') as content_file:
+			arg = content_file.read()
+			import re
+			arg = re.sub('\t', ' ', arg)
+	else:
+		arg = " ".join(arg)
+		
+	paste = AdbPaste( arg )
 	keys = paste.getKeys(fast)
 	paste.sendKeys(keys)

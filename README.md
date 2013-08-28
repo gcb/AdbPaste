@@ -5,6 +5,20 @@ uses the Android adb tool to send input. StdIn will be massaged to go trhu all t
 
 ![screenshot1](https://raw.github.com/gcb/AdbPaste/master/screenshot1.png "screenshot 1")
 
+Usage
+=====
+
+Note: command line flags must be in order, or feel free to fix :)
+
+--fast Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
+
+--notab Changes tabs into single spaces
+
+--file Next argument must be a filename. Content will be sent.
+
+If --file is not used, all the next arguments will be sent
+
+
 the problem
 ===========
 
@@ -32,6 +46,8 @@ C:\CODE\AdbPaste>adb shell input text "simple("
 ```
 
 Can not send a huge string as the emulator timesout and drop much of it.
+
+Common solution to use a SMS and copy/paste is faster on an actual device, but less practical for running automated tests in the emulator. On automated tests it is easier to wait a few seconds than to deal with application switching and copy paste.
 
 Solution
 ========
