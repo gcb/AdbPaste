@@ -97,9 +97,15 @@ class AdbPaste:
 				# before anything, escape if needed
 				if c == '"': # added this to CMD.exe issues, TODO: test on other platforms
 					c = '\\\\\\"' # this will become \\\" to CMD when passing to adb.exe, which will become \" to sh, and finally " to the device
-					
+				# special case for >. only way to escape them in windows when it is in a double quote and followed by anything is with ^
+				elif sys.platform == "win32" and c == ">":
+					c = "\\^" + c
+				# ^ is a escape char in windows. it will be ignored
+				elif sys.platform == "win32" and c == "^":
+					c = "^^"
 				elif c in self.inconvenience:
 					c = '\\' + c
+
 				#// here is something weird... $ does not need to be encoded (\$ results in \$ typed in the emulator) but it will
 				#// also fail if it's not the last char in the string. proably sh at some point try to do variable subst
 				if len(r) > 0 and isinstance(r[-1], str) and r[-1][-1] != '$':
