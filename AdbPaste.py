@@ -68,7 +68,7 @@ class AdbPaste:
 	#// there is nothing i can do when calling it on windows because adb will just
 	#// pass it forward to sh and things break.
 	trouble = [' ', '\n', '	'] # i think space is only needed in adb.exe->sh... when running directly in unix it may not be needed
-	inconvenience = [';', ')' ,'(', "'", '\\', '&', '#']
+	inconvenience = [';', ')' ,'(', "'", '\\', '&', '#', '<', '>']
 
 	def __init__(self, input_string=""):
 		self.addString( input_string )
@@ -97,10 +97,12 @@ class AdbPaste:
 				# before anything, escape if needed
 				if c == '"': # added this to CMD.exe issues, TODO: test on other platforms
 					c = '\\\\\\"' # this will become \\\" to CMD when passing to adb.exe, which will become \" to sh, and finally " to the device
+					
 				elif c in self.inconvenience:
 					c = '\\' + c
-
-				if len(r) > 0 and isinstance(r[-1], str):
+				#// here is something weird... $ does not need to be encoded (\$ results in \$ typed in the emulator) but it will
+				#// also fail if it's not the last char in the string. proably sh at some point try to do variable subst
+				if len(r) > 0 and isinstance(r[-1], str) and r[-1][-1] != '$':
 					r[-1] += c
 				else:
 					#// otherwise, start a new safe string batch
