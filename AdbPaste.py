@@ -71,7 +71,7 @@ class AdbPaste:
 	#// there is nothing i can do when calling it on windows because adb will just
 	#// pass it forward to sh and things break.
 	trouble = [' '] # i think space is only needed in adb.exe->sh... when running directly in unix it may not be needed
-	inconvenience = [';', ')' ,'(', '"', '\\', '&' ]
+	inconvenience = [';', ')' ,'(', '"', '\'', '\\', '&' ]
 
 	def __init__(self, input_string=""):
 		self.addString( input_string )
@@ -80,22 +80,22 @@ class AdbPaste:
 		self.string_data = input_string
 
 
-	def getKeys(self):
+	def getKeys(self, fast=False):
 		"thanks to some keys not being available, e.g. colon, we return an array of keycodes (int) or strings."
 		r = []
 		count = 0
 		for c in self.string_data:
 			count += 1
+			# if char is in trouble list, create a new int element in the output
+			if c in self.trouble:
+				t = self.translate(c)
+				r.append( t )
 			# work around a bug in the emulator... if the browser starts to look on google
 			#  while this script is 'typing' in the address bar, anything longer than 10 or so
 			#  chars will fail on my box... so just make it slow here too... man, i hate the emulator.
 			#if len(r) < 10: # or len(r[-1]) > 10:
-			if count > 7 and len(r[-1]) > 7: # or len(r[-1]) > 10:
+			elif not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
 				r.append( c )
-			elif c in self.trouble:
-				# if char is in trouble list, create a new int element in the output
-				t = self.translate(c)
-				r.append( t )
 			else:
 				#// if the last element is a safe string, continue to add to it
 				# before anything, escape if needed
@@ -116,11 +116,11 @@ class AdbPaste:
 		"sends a single key to the device/emulator"
 		print('sending', key)
 		if( isinstance(key, int) ):
-			os.system('c:\\adt-bundle-windows-x86_64-20130729\sdk\platform-tools\\adb shell input keyevent %d'%key)
+			os.system('adb shell input keyevent %d'%key)
 		else:
 			if( key == '"' ):
 				raise Exception(NotImplemented)
-			os.system('c:\\adt-bundle-windows-x86_64-20130729\sdk\platform-tools\\adb shell input text "' + key + '"')
+			os.system('adb shell input text "' + key + '"')
 
 	def translate( self, char ):
 		return self.key_dict[char] #// will fail on unkown values, so we can add them :)
@@ -130,6 +130,12 @@ class AdbPaste:
 
 
 if __name__=="__main__":
-	paste = AdbPaste( " ".join(sys.argv[1:]) )
-	keys = paste.getKeys()
+	arg = sys.argv[1:]
+	if arg[0] == "--fast":
+		fast = True
+		arg = arg[1:]
+	else:
+		fast = False
+	paste = AdbPaste( " ".join(arg) )
+	keys = paste.getKeys(fast)
 	paste.sendKeys(keys)
