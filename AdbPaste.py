@@ -4,7 +4,7 @@
 # writting in a hurry. No unit tests because most of the issues i get is because of the adb->sh translation
 # if I could mock that up I wouldn't need this file...
 
-import sys,os
+import sys,os,itertools
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
 
@@ -66,7 +66,7 @@ class AdbPaste:
 		"+":81,
 		"(":162,
 		")":163,
-		#// note how there's no colon or single/double quotes and others... sigh. can't standardize one solution for it all
+		#// note how there are no :'"? and others... sigh. can't standardize one solution for it all
 	}
 
 	#// charaters that must be sent as keyevent because as string sh will complain.
@@ -122,6 +122,14 @@ class AdbPaste:
 				else:
 					#// otherwise, start a new safe string batch
 					r.append( c )
+
+		# ? is a special case at least on win32. "asd?" and "?a" ok. "?" fail. "\?" shows "d".
+		# so we can't escape it, but we can make it work by appending something when it is alone.
+		# but then we have to delete that something... argh
+		# also we only need to pad it if the string isn't already paddig it. but in the main loop we aren't looking forward.
+		# so the solution here is to look at instances where it happens without any padding, and change to ?a<backspace>... sigh
+		r = itertools.chain.from_iterable(("?a", 67) if item == "?" else (item, ) for item in r)
+
 		return r
 
 	def sendKeys(self, key_list):
