@@ -1,4 +1,9 @@
 #!/usr/bin/python
+
+# GPV v3 code.
+# writting in a hurry. No unit tests because most of the issues i get is because of the adb->sh translation
+# if I could mock that up I wouldn't need this file...
+
 import sys,os
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
@@ -97,9 +102,13 @@ class AdbPaste:
 				# before anything, escape if needed
 				if c == '"': # added this to CMD.exe issues, TODO: test on other platforms
 					c = '\\\\\\"' # this will become \\\" to CMD when passing to adb.exe, which will become \" to sh, and finally " to the device
-				# special case for >. only way to escape them in windows when it is in a double quote and followed by anything is with ^
+				# special case for > ,only way to escape them in windows when it is in a double quote and followed by anything is with ^
+				# but adding the ^ in front, if there's no double quote in the string, CMD will not treat ^ as a special char and send it along
 				elif sys.platform == "win32" and c == ">":
-					c = "\\^" + c
+					if len(r)>0 and isinstance(r[-1], str) and '"' in r[-1]:
+						c = "\\^>"
+					else:
+						c = "\\>"
 				# ^ is a escape char in windows. it will be ignored
 				elif sys.platform == "win32" and c == "^":
 					c = "^^"
