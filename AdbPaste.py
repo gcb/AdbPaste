@@ -132,22 +132,26 @@ class AdbPaste:
 
 		return r
 
-	def sendKeys(self, key_list):
+	def sendKeys(self, key_list, device = False):
 		for k in key_list:
-			self.send( k );
+			self.send( k, device );
 
-	def send( self, key ):
+	def send( self, key, device = False ):
 		"sends a single key to the device/emulator"
 		print('sending', key)
+		cmd = 'adb'
+		if isinstance(device, str):
+			cmd += ' -s ' + device
 		if( isinstance(key, int) ):
-			os.system('adb shell input keyevent %d'%key)
+			os.system(cmd + ' shell input keyevent %d'%key)
 		else:
-			os.system('adb shell input text "' + key + '"')
+			os.system(cmd + ' shell input text "' + key + '"')
 
 	def translate( self, char ):
 		return self.key_dict[char] #// will fail on unkown values, so we can add them :)
 
 if __name__=="__main__":
+	device = False
 	arg = sys.argv[1:]
 	#// --fast: must be 1st arg, i'm lazy. Will bypass the workaround of breaking longer strings
 	#//         will mess up input in the browser or other input boxes that does network searchs
@@ -165,6 +169,11 @@ if __name__=="__main__":
 	else:
 		notab = False
 
+	#// -s: pass the next value to -s flag on the adb command. For selecting which device to use when there's more than one present
+	if arg[0] == "-s":
+		device = arg[1]
+		arg = arg[2:]
+
 	#// -- file: read the contents from a file, and not from stdin
 	if arg[0] == "--file" and isinstance(arg[1], str):
 		with open(arg[1], 'r') as content_file:
@@ -176,4 +185,4 @@ if __name__=="__main__":
 		
 	paste = AdbPaste( arg )
 	keys = paste.getKeys(fast)
-	paste.sendKeys(keys)
+	paste.sendKeys(keys, device )

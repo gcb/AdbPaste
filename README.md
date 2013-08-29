@@ -14,6 +14,8 @@ Note: command line flags must be in order, or feel free to fix :)
 
 --notab Changes tabs into single spaces
 
+-s Serial number of the device adb should use. Analogous to -s flag of adb (use `adb devices` to see a list). Only needed if more than one device are available.
+
 --file Next argument must be a filename. Content will be sent.
 
 If --file is not used, all the next arguments will be sent
