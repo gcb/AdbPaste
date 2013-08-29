@@ -143,9 +143,14 @@ class AdbPaste:
 		if isinstance(device, str):
 			cmd += ' -s ' + device
 		if( isinstance(key, int) ):
-			os.system(cmd + ' shell input keyevent %d'%key)
+			ret = os.system(cmd + ' shell input keyevent %d'%key)
 		else:
-			os.system(cmd + ' shell input text "' + key + '"')
+			ret = os.system(cmd + ' shell input text "' + key + '"')
+		if ret != 0:
+			if isinstance(ret, int):
+				sys.exit( ret )
+			else:
+				sys.exit( 1 )
 
 	def translate( self, char ):
 		return self.key_dict[char] #// will fail on unkown values, so we can add them :)
