@@ -85,6 +85,8 @@ class AdbPaste:
 	#// there is nothing i can do when calling it on windows because adb will just
 	#// pass it forward to sh and things break.
 	trouble = [' ', '\n', '	'] # i think space is only needed in adb.exe->sh... when running directly in unix it may not be needed
+	if sys.platform != "win32":
+		trouble.append('`')
 	inconvenience = [';', ')' ,'(', "'", '\\', '&', '#', '<', '>', '|']
 
 	def __init__(self, input_string=""):
