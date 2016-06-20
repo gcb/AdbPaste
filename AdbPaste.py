@@ -101,16 +101,14 @@ class AdbPaste:
 		count = 0
 		for c in self.string_data:
 			count += 1
-			# if char is in trouble list, create a new int element in the output
-			if c in self.trouble:
-				t = self.translate(c)
-				r.append( t )
 			# work around a bug in the emulator... if the browser starts to look on google
 			#  while this script is 'typing' in the address bar, anything longer than 10 or so
 			#  chars will fail on my box... so just make it slow here too... man, i hate the emulator.
 			#if len(r) < 10: # or len(r[-1]) > 10:
-			elif not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
-				r.append( c )
+			# if char is in trouble list, create a new int element in the output
+			if c in self.trouble:
+				t = self.translate(c)
+				r.append( t )
 			else:
 				#// if the last element is a safe string, continue to add to it
 				# before anything, escape if needed
@@ -131,8 +129,11 @@ class AdbPaste:
 
 				#// here is something weird... $ does not need to be encoded (\$ results in \$ typed in the emulator) but it will
 				#// also fail if it's not the last char in the string. proably sh at some point try to do variable subst
-				if len(r) > 0 and isinstance(r[-1], str) and r[-1][-1] != '$':
-					r[-1] += c
+				if len(r) > 0 and isinstance(r[-1], str) and len(r[-1]) > 0 and r[-1][-1] != '$':
+					if not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
+						r.append( c )
+					else:
+						r[-1] += c
 				else:
 					#// otherwise, start a new safe string batch
 					r.append( c )
