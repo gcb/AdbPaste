@@ -146,13 +146,14 @@ class AdbPaste:
 
 		return r
 
-	def sendKeys(self, key_list, device = False):
+	def sendKeys(self, key_list, device=False, dryrun=False):
 		for k in key_list:
-			self.send( k, device );
+			self.send( k, device, dryrun );
 
-	def send( self, key, device = False ):
+	def send( self, key, device=False, dryrun=False ):
 		"sends a single key to the device/emulator"
 		print('sending', key)
+		if dryrun: return
 		cmd = 'adb'
 		if isinstance(device, str):
 			cmd += ' -s ' + device
@@ -180,6 +181,13 @@ if __name__=="__main__":
 		arg = arg[1:]
 	else:
 		fast = False
+	#// -n : Dry-run, must be right after --fast or the first argument.
+	#//      will not call adb, just echo out what it is doing.
+	if arg[0] == "-n" or arg[1] == "-n" :
+		dryrun = True
+		arg = arg[1:]
+	else:
+		dryrun = False
 	
 	#// --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
 	if arg[0] == "--notab":
@@ -204,4 +212,4 @@ if __name__=="__main__":
 		
 	paste = AdbPaste( arg )
 	keys = paste.getKeys(fast)
-	paste.sendKeys(keys, device )
+	paste.sendKeys(keys, device, dryrun )
