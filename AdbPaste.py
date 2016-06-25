@@ -79,6 +79,7 @@ class AdbPaste:
 		"(":162,
 		")":163,
 		#// note how there are no :'"? and others... sigh. can't standardize one solution for it all
+		#// more importantly, there is no % to avoid %s -> space.
 	}
 
 	#// charaters that must be sent as keyevent because as string sh will complain.

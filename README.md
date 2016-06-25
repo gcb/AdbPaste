@@ -25,7 +25,7 @@ the problem
 ===========
 
 
-Can not use spaces in win32. Even with escaping.
+1. Can not use spaces in win32. Even with escaping.
 
 ```Batchfile
 C:\CODE\AdbPaste>adb shell input text "simple test"
@@ -40,21 +40,27 @@ uration(ms)]
        input trackball roll <dx> <dy>
 ```
 
-Can not use bash keywords (i am sure i am using the word wrongly here), without escaping.
+1 1/2. Have to escape know sequences.
+
+thanks to @zjw commentin on the above lack of spaces, I learned that i can use %s... but now we have to also make sure we properly escape real ocurrences of %s.
+
+
+
+2. Can not use bash keywords (i am sure i am using the word wrongly here), without escaping.
 
 ```Batchfile
 C:\CODE\AdbPaste>adb shell input text "simple("
 /system/bin/sh: syntax error: '(' unexpected
 ```
 
-Can not send a huge string as the emulator timesout and drop much of it.
+3. Can not send a huge string as the emulator timesout and drop much of it.
 
 Common solution to use a SMS and copy/paste is faster on an actual device, but less practical for running automated tests in the emulator. On automated tests it is easier to wait a few seconds than to deal with application switching and copy paste.
 
 Solution
 ========
 
-Converts espaces to its keycode. Escape bash keywords. Break longer strings in smaller groups.
+Escape %. Converts espaces to %s. Escape bash keywords. Break longer strings in smaller groups.
 
 
 
