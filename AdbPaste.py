@@ -183,7 +183,7 @@ if __name__=="__main__":
 		fast = False
 	#// -n : Dry-run, must be right after --fast or the first argument.
 	#//      will not call adb, just echo out what it is doing.
-	if arg[0] == "-n" or arg[1] == "-n" :
+	if arg[0] == "-n" or ( len(arg) > 1 and arg[1] == "-n" ) :
 		dryrun = True
 		arg = arg[1:]
 	else:

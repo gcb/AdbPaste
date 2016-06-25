@@ -14,7 +14,7 @@ test:
 	# ('sending', '01234567')
 	# ('sending', '\\;asdf')
 	# actual:
-	./AdbPaste.py  -n '01234567;asdf'
+	python ./AdbPaste.py  -n '01234567;asdf'
 	#
 	# TODO: add more tests
 	
