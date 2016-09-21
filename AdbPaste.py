@@ -187,40 +187,61 @@ If --file is not used, text argument must be specified.
 """
 
 if __name__=="__main__":
+
 	device = False
+	fast = False
+	notab = False
+
+	arg_fast = "--fast"
+	arg_notab = "--notab"
+	arg_s = "-s"
+	arg_file = "--file"
+	invalidArgMsg = "Invalid %s parameter. Run AdbPaste without any arguments to see help menu."
+
 	arg = sys.argv[1:]
 
 	if len(arg) == 0:
 		displayHelp()
 		sys.exit(1)
 
-	#// --fast: must be 1st arg, i'm lazy. Will bypass the workaround of breaking longer strings
+	#// --fast: Will bypass the workaround of breaking longer strings
 	#//         will mess up input in the browser or other input boxes that does network searchs
 	#//         while you are typing. For sure!
-	if arg[0] == "--fast":
-		fast = True
-		arg = arg[1:]
-	else:
-		fast = False
+        if arg_fast in arg:
+                index = arg.index(arg_fast)
+                arg.pop(index)
+                fast = True
 	
 	#// --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
-	if arg[0] == "--notab":
+	if arg_notab in arg:
+		index = arg.index(arg_notab)
+		arg.pop(index)
 		notab = True
-		arg = arg[1:]
-	else:
-		notab = False
 
 	#// -s: pass the next value to -s flag on the adb command. For selecting which device to use when there's more than one present
-	if arg[0] == "-s":
-		device = arg[1]
-		arg = arg[2:]
+	if arg_s in arg:
+		index = arg.index(arg_s)
+		arg.pop(index) #Removes -s
+		if len(arg) == index:
+			print invalidArgMsg % arg_s
+		else:
+			device = arg[index]
+			arg.pop(index) #Removes device
 
 	#// -- file: read the contents from a file, and not from stdin
-	if arg[0] == "--file" and isinstance(arg[1], str):
-		with open(arg[1], 'r') as content_file:
-			arg = content_file.read()
-			import re
-			arg = re.sub('\t', ' ', arg)
+	if arg_file in arg:
+		index = arg.index(arg_file)
+		arg.pop(index) #Remove --file
+		if len(arg) == index:
+                        print invalidArgMsg % arg_file
+                elif isinstance(arg[index], str):
+			with open(arg[index], 'r') as content_file:
+				arg = content_file.read()
+				if notab:
+					import re
+					arg = re.sub('\t', ' ', arg)
+		else:
+			arg = " ".join(arg)
 	else:
 		arg = " ".join(arg)
 		
