@@ -169,9 +169,31 @@ class AdbPaste:
 	def translate( self, char ):
 		return self.key_dict[char] #// will fail on unkown values, so we can add them :)
 
+def displayHelp():
+	print """
+Command: python AdbPaste.py [options [optionArguments]] [text]
+
+Options:
+
+--fast: Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
+
+--notab: Changes tabs into single spaces
+
+-s: Serial number of the device adb should use. Analogous to -s flag of adb (use adb devices to see a list). Only needed if more than one device are available.
+
+--file: Next argument must be a filename. Content will be sent.
+
+If --file is not used, text argument must be specified.
+"""
+
 if __name__=="__main__":
 	device = False
 	arg = sys.argv[1:]
+
+	if len(arg) == 0:
+		displayHelp()
+		sys.exit(1)
+
 	#// --fast: must be 1st arg, i'm lazy. Will bypass the workaround of breaking longer strings
 	#//         will mess up input in the browser or other input boxes that does network searchs
 	#//         while you are typing. For sure!
