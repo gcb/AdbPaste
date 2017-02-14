@@ -105,12 +105,6 @@ class AdbPaste:
 			if c in self.trouble:
 				t = self.translate(c)
 				r.append( t )
-			# work around a bug in the emulator... if the browser starts to look on google
-			#  while this script is 'typing' in the address bar, anything longer than 10 or so
-			#  chars will fail on my box... so just make it slow here too... man, i hate the emulator.
-			#if len(r) < 10: # or len(r[-1]) > 10:
-			elif not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
-				r.append( c )
 			else:
 				#// if the last element is a safe string, continue to add to it
 				# before anything, escape if needed
@@ -131,8 +125,14 @@ class AdbPaste:
 
 				#// here is something weird... $ does not need to be encoded (\$ results in \$ typed in the emulator) but it will
 				#// also fail if it's not the last char in the string. proably sh at some point try to do variable subst
-				if len(r) > 0 and isinstance(r[-1], str) and r[-1][-1] != '$':
-					r[-1] += c
+				if len(r) > 0 and isinstance(r[-1], str) and len(r[-1]) > 0 and r[-1][-1] != '$':
+					# work around a bug in the emulator... if the browser starts to look on google
+					#  while this script is 'typing' in the address bar, anything longer than 10 or so
+					#  chars will fail on my box... so just make it slow here too... man, i hate the emulator.
+					if not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
+						r.append( c )
+					else:
+						r[-1] += c
 				else:
 					#// otherwise, start a new safe string batch
 					r.append( c )
@@ -146,13 +146,14 @@ class AdbPaste:
 
 		return r
 
-	def sendKeys(self, key_list, device = False):
+	def sendKeys(self, key_list, device=False, dryrun=False):
 		for k in key_list:
-			self.send( k, device );
+			self.send( k, device, dryrun );
 
-	def send( self, key, device = False ):
+	def send( self, key, device=False, dryrun=False ):
 		"sends a single key to the device/emulator"
 		print('sending', key)
+		if dryrun: return
 		cmd = 'adb'
 		if isinstance(device, str):
 			cmd += ' -s ' + device
@@ -181,6 +182,8 @@ Options:
 
 -s: Serial number of the device adb should use. Analogous to -s flag of adb (use adb devices to see a list). Only needed if more than one device are available.
 
+-n: Dry run. Echo what the command would do, without actually sending anything via adb.
+
 --file: Next argument must be a filename. Content will be sent.
 
 If --file is not used, text argument must be specified.
@@ -195,6 +198,7 @@ if __name__=="__main__":
 	arg_fast = "--fast"
 	arg_notab = "--notab"
 	arg_s = "-s"
+	arg_dryrun = "-n"
 	arg_file = "--file"
 	invalidArgMsg = "Invalid %s parameter. Run AdbPaste without any arguments to see help menu."
 
@@ -207,10 +211,18 @@ if __name__=="__main__":
 	#// --fast: Will bypass the workaround of breaking longer strings
 	#//         will mess up input in the browser or other input boxes that does network searchs
 	#//         while you are typing. For sure!
-        if arg_fast in arg:
-                index = arg.index(arg_fast)
-                arg.pop(index)
-                fast = True
+	if arg_fast in arg:
+		index = arg.index(arg_fast)
+		arg.pop(index)
+		fast = True
+
+	#// -n : Dry-run. Will not call adb, just echo out what it is doing.
+	if arg_dryrun in arg:
+		index = arg.index(arg_dryrun)
+		arg.pop(index)
+		dryrun = True
+	else:
+		dryrun = False
 	
 	#// --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
 	if arg_notab in arg:
@@ -247,4 +259,4 @@ if __name__=="__main__":
 		
 	paste = AdbPaste( arg )
 	keys = paste.getKeys(fast)
-	paste.sendKeys(keys, device )
+	paste.sendKeys(keys, device, dryrun )
