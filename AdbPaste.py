@@ -108,9 +108,7 @@ class AdbPaste:
 			# work around a bug in the emulator... if the browser starts to look on google
 			#  while this script is 'typing' in the address bar, anything longer than 10 or so
 			#  chars will fail on my box... so just make it slow here too... man, i hate the emulator.
-			#if len(r) < 10: # or len(r[-1]) > 10:
-			elif not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
-				r.append( c )
+			#elif len(r) < 10: # or len(r[-1]) > 10:
 			else:
 				#// if the last element is a safe string, continue to add to it
 				# before anything, escape if needed
@@ -119,6 +117,7 @@ class AdbPaste:
 				# special case for > ,only way to escape them in windows when it is in a double quote and followed by anything is with ^
 				# but adding the ^ in front, if there's no double quote in the string, CMD will not treat ^ as a special char and send it along
 				elif sys.platform == "win32" and c == ">":
+					print 'greater than'
 					if len(r)>0 and isinstance(r[-1], str) and '"' in r[-1]:
 						c = "\\^>"
 					else:
@@ -131,8 +130,11 @@ class AdbPaste:
 
 				#// here is something weird... $ does not need to be encoded (\$ results in \$ typed in the emulator) but it will
 				#// also fail if it's not the last char in the string. proably sh at some point try to do variable subst
-				if len(r) > 0 and isinstance(r[-1], str) and r[-1][-1] != '$':
-					r[-1] += c
+				if len(r) > 0 and isinstance(r[-1], str) and len(r[-1]) > 0 and r[-1][-1] != '$':
+ 					if not fast and count > 7 and isinstance(r[-1], str) and len(r[-1]) > 7:
+ 						r.append( c )
+ 					else:
+ 						r[-1] += c
 				else:
 					#// otherwise, start a new safe string batch
 					r.append( c )
