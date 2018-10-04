@@ -49,6 +49,13 @@ class AdbPaste:
 			else:
 				sys.exit( 1 )
 
+def readFrom(f):
+	res = f.read()
+	if notab:
+		import re
+		res = re.sub('\t', ' ', res)
+	return res
+
 def displayHelp():
 	print """
 Command: python AdbPaste.py [options [optionArguments]] [text]
@@ -65,7 +72,7 @@ Options:
 
 --file: Next argument must be a filename. Content will be sent.
 
-If --file is not used, text argument must be specified.
+If --file is not used, and no text argument is specified, text is read from stdin.
 """
 
 if __name__=="__main__":
@@ -127,14 +134,13 @@ if __name__=="__main__":
                         print invalidArgMsg % arg_file
                 elif isinstance(arg[index], str):
 			with open(arg[index], 'r') as content_file:
-				arg = content_file.read()
-				if notab:
-					import re
-					arg = re.sub('\t', ' ', arg)
+				arg = readFrom(content_file)
 		else:
 			arg = " ".join(arg)
 	else:
 		arg = " ".join(arg)
+		if not arg:
+			arg = readFrom(sys.stdin)
 		
 	paste = AdbPaste( arg )
 	keys = paste.getKeys(fast)

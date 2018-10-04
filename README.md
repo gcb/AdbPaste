@@ -16,7 +16,7 @@ Usage
 
 --file Next argument must be a filename. Content will be sent.
 
-If --file is not used, all the next arguments will be sent
+If --file is not used, all the next arguments will be sent. If no arguments are passed, input is read from stdin.
 
 
 the problem
