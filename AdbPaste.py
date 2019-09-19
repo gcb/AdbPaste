@@ -62,6 +62,8 @@ Command: python AdbPaste.py [options [optionArguments]] [text]
 
 Options:
 
+--help,-h: Show this help
+
 --fast: Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
 
 --notab: Changes tabs into single spaces
@@ -86,11 +88,14 @@ if __name__=="__main__":
 	arg_s = "-s"
 	arg_dryrun = "-n"
 	arg_file = "--file"
+	arg_help = "--help"
+	arg_help_short = "-h"
 	invalidArgMsg = "Invalid %s parameter. Run AdbPaste without any arguments to see help menu."
 
 	arg = sys.argv[1:]
 
-	if len(arg) == 0:
+	#// --help,-h : Show help.
+	if arg_help in arg or arg_help_short in arg:
 		displayHelp()
 		sys.exit(1)
 

@@ -8,6 +8,8 @@ uses the Android adb tool to send input. StdIn will be massaged to go trhu all t
 Usage
 =====
 
+--help,-h Show usage information
+
 --fast Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
 
 --notab Changes tabs into single spaces
