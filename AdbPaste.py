@@ -69,8 +69,6 @@ Options:
 
 --help,-h: Show this help
 
---fast: Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
-
 --notab: Changes tabs into single spaces
 
 -s: Serial number of the device adb should use. Analogous to -s flag of adb (use adb devices to see a list). Only needed if more than one device are available.
@@ -85,10 +83,8 @@ If --file is not used, and no text argument is specified, text is read from stdi
 if __name__=="__main__":
 
 	device = False
-	fast = False
 	notab = False
 
-	arg_fast = "--fast"
 	arg_notab = "--notab"
 	arg_s = "-s"
 	arg_dryrun = "-n"
@@ -103,14 +99,6 @@ if __name__=="__main__":
 	if arg_help in arg or arg_help_short in arg:
 		displayHelp()
 		sys.exit(1)
-
-	#// --fast: Will bypass the workaround of breaking longer strings
-	#//         will mess up input in the browser or other input boxes that does network searchs
-	#//         while you are typing. For sure!
-	if arg_fast in arg:
-		index = arg.index(arg_fast)
-		arg.pop(index)
-		fast = True
 
 	#// -n : Dry-run. Will not call adb, just echo out what it is doing.
 	if arg_dryrun in arg:
