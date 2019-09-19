@@ -51,9 +51,4 @@ Common solution to use a SMS and copy/paste is faster on an actual device, but l
 
 Solution
 ========
-
-Converts espaces to its keycode. Escape bash keywords. Break longer strings in smaller groups.
-
-
-
-
+Converts all characters into hexadecimal interpretation using the bash `$'\x00'` string literal format. Additionally splits the string on `%` to prevent `adb shell input` from replacing `%s` by spaces.
