@@ -20,30 +20,24 @@ import sys,subprocess,itertools
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
 
-	def __init__(self, input_string=""):
-		self.addString( input_string )
-	
-	def addString(self, input_string):
-		self.string_data = input_string
-
-	def getKeys(self, fast=False):
-		if len(self.string_data) > 0:
-			r = "$'" + ''.join(['\\x' + c.encode('hex') for c in self.string_data]) + "'"
-
-		return r
-
-	def sendKeys(self, string, device=False, dryrun=False):
-		self.send( string, device, dryrun );
 
 	def send( self, string, device=False, dryrun=False ):
-		"sends a single key to the device/emulator"
+		"encodes and sends a string to the device/emulator"
+
+		encoded = "$'" + ''.join(['\\x' + c.encode('hex') for c in string]) + "'"
+		self.sendEncoded(encoded, device, dryrun)
+
+	def sendEncoded(self, string, device, dryrun):
+		"sends a string to the device/emulator"
 		print('sending', string)
 		if dryrun: return
+
 		cmd = ['adb']
 		if isinstance(device, str):
 			cmd += ['-s', device]
 		cmd += ['shell', 'input', 'text', string]
 		ret = subprocess.call(cmd)
+
 		if ret != 0:
 			if isinstance(ret, int):
 				sys.exit( ret )
@@ -148,6 +142,5 @@ if __name__=="__main__":
 		if not arg:
 			arg = readFrom(sys.stdin)
 		
-	paste = AdbPaste( arg )
-	keys = paste.getKeys(fast)
-	paste.sendKeys(keys, device, dryrun )
+	paste = AdbPaste()
+	paste.send(arg, device, dryrun )
