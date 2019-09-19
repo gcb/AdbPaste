@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 
-import sys,subprocess,itertools
+import sys,subprocess,itertools,re
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
 
@@ -24,8 +24,18 @@ class AdbPaste:
 	def send( self, string, device=False, dryrun=False ):
 		"encodes and sends a string to the device/emulator"
 
-		encoded = "$'" + ''.join(['\\x' + c.encode('hex') for c in string]) + "'"
-		self.sendEncoded(encoded, device, dryrun)
+		# The adb shell input command interprets "%s" as a
+		# space. Since there is no way to escape the % (e.g. %%
+		# is not treated specially), we split the string into
+		# multiple parts so each % character ends up at the end
+		# of a string where it will be left untouched. This also
+		# splits on % signs not part of a %s, in case any
+		# additional escape sequences are added to adb shell
+		# input later.
+		# See also https://github.com/gcb/AdbPaste/issues/1
+		for part in re.findall('[^%]+%?', string):
+			encoded = "$'" + ''.join(['\\x' + c.encode('hex') for c in part]) + "'"
+			self.sendEncoded(encoded, device, dryrun)
 
 	def sendEncoded(self, string, device, dryrun):
 		"sends a string to the device/emulator"
