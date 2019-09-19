@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 
-import sys,os,itertools
+import sys,subprocess,itertools
 class AdbPaste:
 	"Pass a long string as input to an android device/emulator"
 
@@ -39,10 +39,11 @@ class AdbPaste:
 		"sends a single key to the device/emulator"
 		print('sending', string)
 		if dryrun: return
-		cmd = 'adb'
+		cmd = ['adb']
 		if isinstance(device, str):
-			cmd += ' -s ' + device
-		ret = os.system(cmd + ' shell input text "' + string + '"')
+			cmd += ['-s', device]
+		cmd += ['shell', 'input', 'text', string]
+		ret = subprocess.call(cmd)
 		if ret != 0:
 			if isinstance(ret, int):
 				sys.exit( ret )
