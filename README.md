@@ -8,7 +8,7 @@ uses the Android adb tool to send input. StdIn will be massaged to go trhu all t
 Usage
 =====
 
---fast Ignores the workaround of breaking up the longer strings into small batches. Works fine for simple inputs. Will fail if used on emulator with fields that do network lookup.
+--help,-h Show usage information
 
 --notab Changes tabs into single spaces
 
@@ -16,7 +16,7 @@ Usage
 
 --file Next argument must be a filename. Content will be sent.
 
-If --file is not used, all the next arguments will be sent
+If --file is not used, all the next arguments will be sent. If no arguments are passed, input is read from stdin.
 
 
 the problem
@@ -51,9 +51,4 @@ Common solution to use a SMS and copy/paste is faster on an actual device, but l
 
 Solution
 ========
-
-Converts espaces to its keycode. Escape bash keywords. Break longer strings in smaller groups.
-
-
-
-
+Converts all characters into hexadecimal interpretation using the bash `$'\x00'` string literal format. Additionally splits the string on `%` to prevent `adb shell input` from replacing `%s` by spaces.
