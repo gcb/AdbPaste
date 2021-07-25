@@ -22,7 +22,6 @@ If --file is not used, all the next arguments will be sent. If no arguments are 
 the problem
 ===========
 
-
 Can not use spaces in win32. Even with escaping.
 
 ```Batchfile
@@ -37,6 +36,8 @@ uration(ms)]
        input trackball press
        input trackball roll <dx> <dy>
 ```
+
+More on the above: https://web.archive.org/web/20210724065902/https://www.wietzebeukema.nl/blog/windows-command-line-obfuscation
 
 Can not use bash keywords (i am sure i am using the word wrongly here), without escaping.
 
