@@ -16,53 +16,61 @@
 #   limitations under the License.
 #
 
-import sys,subprocess,itertools,re
+import sys, subprocess, re
+
+
 class AdbPaste:
-	"Pass a long string as input to an android device/emulator"
+    "Pass a long string as input to an android device/emulator"
 
+    def send(self, string, device=False, dryrun=False):
+        "encodes and sends a string to the device/emulator"
 
-	def send( self, string, device=False, dryrun=False ):
-		"encodes and sends a string to the device/emulator"
+        # The adb shell input command interprets "%s" as a
+        # space. Since there is no way to escape the % (e.g. %%
+        # is not treated specially), we split the string into
+        # multiple parts so each % character ends up at the end
+        # of a string where it will be left untouched. This also
+        # splits on % signs not part of a %s, in case any
+        # additional escape sequences are added to adb shell
+        # input later.
+        # See also https://github.com/gcb/AdbPaste/issues/1
+        for part in re.findall("[^%]+%?", string):
+            encoded = (
+                "$'" + "".join(["\\x" + c.encode("utf-8").hex() for c in part]) + "'"
+            )
+            self.sendEncoded(encoded, device, dryrun)
 
-		# The adb shell input command interprets "%s" as a
-		# space. Since there is no way to escape the % (e.g. %%
-		# is not treated specially), we split the string into
-		# multiple parts so each % character ends up at the end
-		# of a string where it will be left untouched. This also
-		# splits on % signs not part of a %s, in case any
-		# additional escape sequences are added to adb shell
-		# input later.
-		# See also https://github.com/gcb/AdbPaste/issues/1
-		for part in re.findall('[^%]+%?', string):
-			encoded = "$'" + ''.join(['\\x' + c.encode('hex') for c in part]) + "'"
-			self.sendEncoded(encoded, device, dryrun)
+    def sendEncoded(self, string, device, dryrun):
+        "sends a string to the device/emulator"
+        print(("sending", string))
+        if dryrun:
+            return
 
-	def sendEncoded(self, string, device, dryrun):
-		"sends a string to the device/emulator"
-		print('sending', string)
-		if dryrun: return
+        cmd = ["adb"]
+        if isinstance(device, str):
+            cmd += ["-s", device]
+        cmd += ["shell", "input", "text", string]
+        ret = subprocess.call(cmd)
 
-		cmd = ['adb']
-		if isinstance(device, str):
-			cmd += ['-s', device]
-		cmd += ['shell', 'input', 'text', string]
-		ret = subprocess.call(cmd)
+        if ret != 0:
+            if isinstance(ret, int):
+                sys.exit(ret)
+            else:
+                sys.exit(1)
 
-		if ret != 0:
-			if isinstance(ret, int):
-				sys.exit( ret )
-			else:
-				sys.exit( 1 )
 
 def readFrom(f):
-	res = f.read()
-	if notab:
-		import re
-		res = re.sub('\t', ' ', res)
-	return res
+    res = f.read()
+    if notab:
+        import re
+
+        res = re.sub("\t", " ", res)
+    return res
+
 
 def displayHelp():
-	print """
+    print(
+        """
 Command: python AdbPaste.py [options [optionArguments]] [text]
 
 Options:
@@ -79,66 +87,70 @@ Options:
 
 If --file is not used, and no text argument is specified, text is read from stdin.
 """
+    )
 
-if __name__=="__main__":
 
-	device = False
-	notab = False
+if __name__ == "__main__":
 
-	arg_notab = "--notab"
-	arg_s = "-s"
-	arg_dryrun = "-n"
-	arg_file = "--file"
-	arg_help = "--help"
-	arg_help_short = "-h"
-	invalidArgMsg = "Invalid %s parameter. Run AdbPaste without any arguments to see help menu."
+    device = False
+    notab = False
 
-	arg = sys.argv[1:]
+    arg_notab = "--notab"
+    arg_s = "-s"
+    arg_dryrun = "-n"
+    arg_file = "--file"
+    arg_help = "--help"
+    arg_help_short = "-h"
+    invalidArgMsg = (
+        "Invalid %s parameter. Run AdbPaste without any arguments to see help menu."
+    )
 
-	#// --help,-h : Show help.
-	if arg_help in arg or arg_help_short in arg:
-		displayHelp()
-		sys.exit(1)
+    arg = sys.argv[1:]
 
-	#// -n : Dry-run. Will not call adb, just echo out what it is doing.
-	if arg_dryrun in arg:
-		index = arg.index(arg_dryrun)
-		arg.pop(index)
-		dryrun = True
-	else:
-		dryrun = False
-	
-	#// --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
-	if arg_notab in arg:
-		index = arg.index(arg_notab)
-		arg.pop(index)
-		notab = True
+    # // --help,-h : Show help.
+    if arg_help in arg or arg_help_short in arg:
+        displayHelp()
+        sys.exit(1)
 
-	#// -s: pass the next value to -s flag on the adb command. For selecting which device to use when there's more than one present
-	if arg_s in arg:
-		index = arg.index(arg_s)
-		arg.pop(index) #Removes -s
-		if len(arg) == index:
-			print invalidArgMsg % arg_s
-		else:
-			device = arg[index]
-			arg.pop(index) #Removes device
+    # // -n : Dry-run. Will not call adb, just echo out what it is doing.
+    if arg_dryrun in arg:
+        index = arg.index(arg_dryrun)
+        arg.pop(index)
+        dryrun = True
+    else:
+        dryrun = False
 
-	#// -- file: read the contents from a file, and not from stdin
-	if arg_file in arg:
-		index = arg.index(arg_file)
-		arg.pop(index) #Remove --file
-		if len(arg) == index:
-                        print invalidArgMsg % arg_file
-                elif isinstance(arg[index], str):
-			with open(arg[index], 'r') as content_file:
-				arg = readFrom(content_file)
-		else:
-			arg = " ".join(arg)
-	else:
-		arg = " ".join(arg)
-		if not arg:
-			arg = readFrom(sys.stdin)
-		
-	paste = AdbPaste()
-	paste.send(arg, device, dryrun )
+    # // --notab: Convert tabs into spaces. usefull for 'typing' a file into a textarea or field where tab would change focus
+    if arg_notab in arg:
+        index = arg.index(arg_notab)
+        arg.pop(index)
+        notab = True
+
+    # // -s: pass the next value to -s flag on the adb command. For selecting which device to use when there's more than one present
+    if arg_s in arg:
+        index = arg.index(arg_s)
+        arg.pop(index)  # Removes -s
+        if len(arg) == index:
+            print((invalidArgMsg % arg_s))
+        else:
+            device = arg[index]
+            arg.pop(index)  # Removes device
+
+    # // -- file: read the contents from a file, and not from stdin
+    if arg_file in arg:
+        index = arg.index(arg_file)
+        arg.pop(index)  # Remove --file
+        if len(arg) == index:
+            print((invalidArgMsg % arg_file))
+        elif isinstance(arg[index], str):
+            with open(arg[index], "r") as content_file:
+                arg = readFrom(content_file)
+        else:
+            arg = " ".join(arg)
+    else:
+        arg = " ".join(arg)
+        if not arg:
+            arg = readFrom(sys.stdin)
+
+    paste = AdbPaste()
+    paste.send(arg, device, dryrun)
